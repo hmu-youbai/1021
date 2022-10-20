@@ -1,0 +1,208 @@
+import Levenshtein as L
+def DNA_complement1(sequence):
+    # 构建互补字典
+    comp_dict = {
+        "A":"T",
+        "T":"A",
+        "G":"C",
+        "C":"G",
+        "a":"t",
+        "t":"a",
+        "g":"c",
+        "c":"g",
+        "u":"a",
+        "N":"N"
+    }
+    #求互补序列
+    sequence_list = list(sequence)
+    sequence_list = [comp_dict[base] for base in sequence_list]
+    s1 = sequence_list
+    s1 = ''.join(sequence_list)
+    sequence_list.reverse()
+    string = ''.join(sequence_list)
+    return string
+    # return s1
+
+def checkAndMerge(s1, s2):   ####注意输入的s2自己取反向互补，输出的是r2，反向后的子集，换句话说，不考虑错误r1的尾部
+    m = min(len(s1), len(s2))
+    jiji = ""
+    for i in range(1,m + 1):
+        ss1 = s1[-i:]
+        ss2 = s2[:i]
+        k = L.hamming(ss1, ss2)
+        if k < 2 and (len(ss2[:i]) > 1 and len(ss2[:i]) > len(jiji)):
+            jiji = ss2[:i]
+    return jiji
+
+def checkzhengxiang(s1, s2):   ####输出的是ref的子集
+    m = min(len(s1), len(s2))
+    jiji = ""
+    for i in range(1,m + 1):
+        ss1 = s1[:i]
+        ss2 = s2[:i]
+        k = L.hamming(ss1, ss2)
+        if k < 2 and (len(ss2[:i]) > 1 and len(ss2[:i]) > len(jiji)):
+            jiji = ss2[:i]
+    return jiji
+
+def r2hyr1(r1,r2):
+    r1hy=""
+    if len(r1)>len(r2):
+        lll=len(r2)
+    else:
+        lll=len(r1)
+    for i in range(lll):
+        if r1[i]=="T" and r2[i]=="C":
+            r1hy=r1hy+"C"
+        else:
+            r1hy=r1hy+r1[i]
+    return r1hy
+def str_int(s1,s2):
+    if len(s1) > len(s2):
+        s1,s2 = s2,s1
+        print(s1,s2)
+    length = len(s1)
+    result = []
+    for step in range(length,0 ,-1):
+        for start in range(0,length-step+1):
+            flag = True
+            tmp = s1[start:start+step]
+            if s2.find(tmp)>-1 :# 第一次找到,后面要接着找
+                result.append(tmp)
+                flag = True
+                newstart = start+1
+                newstep = step
+                while flag:   # 已经找到最长子串,接下来就是判断后面是否还有相同长度的字符串
+                    if newstart+ step >length:  # 大于字符串总长了,退出循环
+                        break
+                    newtmp = s1[newstart:newstart+newstep]
+                    if s2.find(newtmp)>-1:
+                        result.append(newtmp)
+                        newstart+=1
+                        flag = True
+                    else:
+                        newstart +=1
+                        flag = True
+                return result
+            else:
+                continue
+
+c1=[]
+c2=[]
+with open("10182r1r2", 'r') as inin:
+    for line in inin:
+        line = line.strip()
+        jj=line.split("@")
+        jiaozhengr1 = r2hyr1(jj[1], jj[2])
+        c1.append(jj[0])
+        c2.append(jj[1]+"@"+jj[2]+"@"+jiaozhengr1)
+inin.close()
+r1r2=dict(zip(c1, c2))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+jilu1=[]
+jilu2=[]
+jilu3=[]
+
+i=0
+rere=[]
+lixiang=[]
+lll=[]
+with open("r1r2and150ref", 'r') as oioi:
+    for line in oioi:
+        line = line.strip()
+        ppp=line.split()
+        if len(ppp)!=6:
+            continue
+        ppp0=ppp[0]
+        kkk=ppp0.split("_")[0]
+        kkk2=r1r2[kkk].split("@")
+        se333=kkk2[2]
+        se111=kkk2[0]
+        se222=kkk2[1]
+        ref=ppp[5]
+        ccc = checkzhengxiang(se333, ref)       #如果有两处错误，会导致r1和ref相同部分的长度偏短
+        if len(ccc)<5:
+            ccc="百分之五"
+            lixiang.append(ccc)
+        else:
+            rere.append(ccc + "@" + str(len(ccc))+"@"+str(kkk))########r1+环长度
+            lll.append(len(ccc))
+
+            ######################################进去下个筛子
+            cc = checkAndMerge(se111, DNA_complement1(se222))  ###############overlab长度
+            if len(cc) < 4:
+                jilu1.append(str(kkk) + "@" + "无over")  #######预测为5成   真-理想情况
+                quanchang = "超过300"
+                jilu2.append(str(kkk) + "@" + quanchang)
+                jilu3.append(str(kkk) + "@" +"over过短")
+
+            else:
+                jilu1.append(str(kkk) + "@" + cc)
+                quanchang = len(se111) + len(se222) - len(cc) #########毫无问题
+                r2changdu = quanchang - len(ccc)            ############如果len(ccc)短了，r2会变长，这里的r2为r2真+磁铁
+                jilu2.append(str(kkk) + "@" + str(quanchang) + "@" + str(r2changdu))
+                huanchang = 2*len(ccc)-quanchang            ###############环长受到len(ccc)影响，可能偏短
+                jilu3.append(str(kkk) + "@" +str(huanchang))
+
+
+
+
+
+
+
+
+
+
+
+
+            if len(ccc)>148:###########start
+                cc = checkAndMerge(se111, DNA_complement1(se222))   ###############overlab长度
+                if len(cc)<4:
+                     jilu1.append(str(kkk)+"@"+"无over") #######预测为5成
+                     quanchang="超过300"
+                     jilu2.append(str(kkk)+"@"+quanchang)
+
+                else:
+                     jilu1.append(str(kkk) + "@" +cc)
+                     quanchang=len(se111)+len(se222)-len(cc)
+                     r2changdu=quanchang-len(ccc)
+                     jilu2.append(str(kkk) + "@" + str(quanchang)+"@"+str(r2changdu))
+
+
+
+
+
+
+
+
+
+
+
+        i=i+1
+        print(i)
+
+
+
+
+oioi.close()
+
+zz=[]
+for i in range(150):
+    cc=lll.count(i+1)
+    zz.append(str(i+1)+"长度的数量为："+str(cc/1000000))
