@@ -1,0 +1,217 @@
+import Levenshtein as L
+def DNA_complement1(sequence):
+    # 构建互补字典
+    comp_dict = {
+        "A":"T",
+        "T":"A",
+        "G":"C",
+        "C":"G",
+        "a":"t",
+        "t":"a",
+        "g":"c",
+        "c":"g",
+        "u":"a",
+        "N":"N"
+    }
+    #求互补序列
+    sequence_list = list(sequence)
+    sequence_list = [comp_dict[base] for base in sequence_list]
+    s1 = sequence_list
+    s1 = ''.join(sequence_list)
+    sequence_list.reverse()
+    string = ''.join(sequence_list)
+    return string
+    # return s1
+
+def checkAndMerge(s1, s2):   ####注意输入的s2自己取反向互补，输出的是r2，反向后的子集，换句话说，不考虑错误r1的尾部
+    m = min(len(s1), len(s2))
+    jiji = ""
+    for i in range(1,m + 1):
+        ss1 = s1[-i:]
+        ss2 = s2[:i]
+        k = L.hamming(ss1, ss2)
+        if k < 2 and (len(ss2[:i]) > 1 and len(ss2[:i]) > len(jiji)):
+            jiji = ss2[:i]
+    return jiji
+
+def checkzhengxiang(s1, s2):   ####输出的是ref的子集
+    m = min(len(s1), len(s2))
+    jiji = ""
+    for i in range(1,m + 1):
+        ss1 = s1[:i]
+        ss2 = s2[:i]
+        k = L.hamming(ss1, ss2)
+        if k < 2 and (len(ss2[:i]) > 1 and len(ss2[:i]) > len(jiji)):
+            jiji = ss2[:i]
+    return jiji
+
+def r2hyr1(r1,r2):
+    r1hy=""
+    if len(r1)>len(r2):
+        lll=len(r2)
+    else:
+        lll=len(r1)
+    for i in range(lll):
+        if r1[i]=="T" and r2[i]=="C":
+            r1hy=r1hy+"C"
+        else:
+            r1hy=r1hy+r1[i]
+    return r1hy
+
+def str_int(s1,s2):
+    if len(s1) > len(s2):
+        s1,s2 = s2,s1
+        print(s1,s2)
+    length = len(s1)
+    result = []
+    for step in range(length,0 ,-1):
+        for start in range(0,length-step+1):
+            flag = True
+            tmp = s1[start:start+step]
+            if s2.find(tmp)>-1 :# 第一次找到,后面要接着找
+                result.append(tmp)
+                flag = True
+                newstart = start+1
+                newstep = step
+                while flag:   # 已经找到最长子串,接下来就是判断后面是否还有相同长度的字符串
+                    if newstart+ step >length:  # 大于字符串总长了,退出循环
+                        break
+                    newtmp = s1[newstart:newstart+newstep]
+                    if s2.find(newtmp)>-1:
+                        result.append(newtmp)
+                        newstart+=1
+                        flag = True
+                    else:
+                        newstart +=1
+                        flag = True
+                return result
+            else:
+                continue
+
+c1=[]
+c2=[]
+with open("10182r1r2", 'r') as inin:
+    for line in inin:
+        line = line.strip()
+        jj=line.split("@")
+        jiaozhengr1 = r2hyr1(jj[1], jj[2])
+        c1.append(jj[0])
+        c2.append(jj[1]+"@"+jj[2]+"@"+jiaozhengr1)
+inin.close()
+r1r2=dict(zip(c1, c2))
+
+
+################################################
+def checkAndMerge222(s1, s2):  ####注意输入的s2自己取反向互补
+    m = min(len(s1), len(s2))
+    # print(m)
+    jiji = ""
+    for i in range(1, m + 1):
+        ss1 = s1[-i:]
+        ss2 = s2[:i]
+        k = L.hamming(ss1, ss2)
+        if k < 2 and (len(ss2[:i]) > 1 and len(ss2[:i]) > len(jiji)):
+            jiji = ss2[:i]
+
+    if len(jiji) % 2 == 1:
+        wzc = int(len(jiji) / 2)
+        yzyz11 = s1[:-wzc - 1]
+        yzyz22 = s1[-wzc:]
+        yzyz33 = s2[:-wzc - 1]
+        yzyz44 = s2[-wzc:]
+    else:
+        wzc = int(len(jiji) / 2)
+        yzyz11 = s1[:-wzc]
+        yzyz22 = s1[-wzc:]
+        yzyz33 = s2[:-wzc]
+        yzyz44 = s2[-wzc:]
+
+
+
+
+
+
+
+    ss1 = yzyz11
+    ss2 = DNA_complement1(yzyz44)
+    jiji2 = ""
+    k = 0
+    for i in range(1, wzc + 1):
+        if len(jiji) == 2:
+            break
+        if ss1[-i] == ss2[-i]:
+            k = k + 0
+        else:
+            k = k + 1
+
+        if k < 2:
+            jiji2 = ss2[-i:]
+        else:
+            break
+
+    ss1 = yzyz33
+    ss2 = DNA_complement1(yzyz22)
+    jiji3 = ""
+    k = 0
+    for i in range(1, wzc + 1):
+        if len(jiji) == 2:
+            break
+        if ss1[-i] == ss2[-i]:
+            k = k + 0
+        else:
+            k = k + 1
+
+        if k < 2:
+            jiji3 = ss2[-i:]
+        else:
+            break
+    return jiji, jiji2,DNA_complement1(jiji3)
+
+
+
+i=0
+########################################################
+
+yzover=""
+yzoverjieguo=[]
+with open("r1r2and150ref", 'r') as oioi,open("overyz.txt", 'w') as file_object:
+    for line in oioi:
+        line = line.strip()
+        ppp=line.split()
+        if len(ppp)!=6:
+            continue
+
+
+
+        ppp0=ppp[0]
+        kkk=ppp0.split("_")[0]
+        kkk2=r1r2[kkk].split("@")
+
+
+        se333=kkk2[2]
+        se111=kkk2[0]
+        se222=kkk2[1]
+        ref=ppp[5]
+
+
+
+        yzover=""
+        pp = checkAndMerge222(se111, DNA_complement1(se222))
+        if len(pp[1]) == 0:
+            yzover="cuowu0"
+        if int(len(pp[0]) / 2) == int(len(pp[1])):
+            yzover=yzover+"@a1"
+        else:
+            yzover = yzover + "@a2"
+        if int(len(pp[0]) / 2) == int(len(pp[2])):
+            yzover=yzover+"@b1"
+        else:
+            yzover = yzover + "@b2"
+
+
+        yzoverjieguo.append(str(kkk) + "@" +yzover+"@"+str(pp[0])+"@"+str(pp[1])+"@"+str(pp[2]))
+        i=i+1
+        print(i)
+        print(str(kkk) + "@" +yzover+"@"+str(pp[0])+"@"+str(pp[1])+"@"+str(pp[2]), file=file_object)
+oioi.close()
+
